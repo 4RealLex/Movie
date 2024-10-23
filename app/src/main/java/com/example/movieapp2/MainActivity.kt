@@ -14,7 +14,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,12 +28,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MovieApp() {
     val movieList = remember { mutableStateListOf<Movie>() }
-    val scope = rememberCoroutineScope()
+
+    // Replace with your method of retrieving the API key securely
+    val apiKey = "72b79fffba075dc15f87acf6e58edb7c"
 
     LaunchedEffect(Unit) {
-        scope.launch {
-            val response = RetrofitInstance.api.getPopularMovies()
+        try {
+            val response = RetrofitInstance.api.getPopularMovies(apiKey = apiKey)
             movieList.addAll(response.results)
+        } catch (e: Exception) {
+            // Handle the error appropriately (e.g., show a message to the user)
+            e.printStackTrace()
         }
     }
 
@@ -44,11 +48,11 @@ fun MovieApp() {
                 title = { Text(text = "Popular Movies") }
             )
         }
-    ) { paddingValues -> // Use paddingValues from Scaffold
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues), // Apply Scaffold padding here
+                .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(movieList) { movie ->
@@ -62,7 +66,7 @@ fun MovieApp() {
 fun MovieCard(movie: Movie) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Image(
@@ -84,5 +88,11 @@ fun MovieCard(movie: Movie) {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    MovieApp()
+    val sampleMovie = Movie(
+        id = 0,
+        title = "Sample Movie",
+        overview = "This is a sample movie overview.",
+        poster_path = "/sample.jpg"
+    )
+    MovieCard(movie = sampleMovie)
 }
